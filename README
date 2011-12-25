@@ -1,0 +1,4 @@
+cssとjavascriptをheadタグ内にインラインで読みこむことによって、http接続数を減らし、OpenPNE3.xの表示を高速化することを目的としたプラグインです。
+
+initial commitの状態ではまだ高速化されません。
+
