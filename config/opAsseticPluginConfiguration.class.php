@@ -13,7 +13,7 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     {
       //pending: read settings from SnsConfig table?
       $this->enableStylesheets = sfConfig::get('opAsseticPlugin_enable_css', true);
-      $this->compressStylesheets = sfConfig::get('opAsseticPlugin_compress_css', false);
+      $this->compressStylesheets = sfConfig::get('opAsseticPlugin_compress_css', true);
       $this->enableJavascripts = sfConfig::get('opAsseticPlugin_enable_js', true);
       $this->compressJavascripts = sfConfig::get('opAsseticPlugin_compress_js', true);
       
@@ -206,7 +206,14 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   
   protected function compressStylesheets($css)
   {
-    //pending: compress css here
+    //remove comments
+    $css = preg_replace("/\/\*.+?\*\//is", '', $css);
+    //remove whitespaces
+    $css = preg_replace("/^\s+/im", '', $css);
+    $css = str_replace(array(": ", " {", ", "), array(":", "{", ","), $css);
+    //remove \r\n
+    $css = str_replace(array("\r", "\n"), '', $css);
+    
     return $css;
   }
 }
