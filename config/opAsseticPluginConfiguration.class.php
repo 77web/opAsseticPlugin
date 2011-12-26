@@ -9,13 +9,13 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   
   public function initialize()
   {
-    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='prod')
+    if(sfConfig::get('sf_app')=='pc_frontend')
     {
       //pending: read settings from SnsConfig table?
-      $this->enableStylesheets = sfConfig::get('opAsseticPlugin_enable_css', true);
-      $this->compressStylesheets = sfConfig::get('opAsseticPlugin_compress_css', true);
-      $this->enableJavascripts = sfConfig::get('opAsseticPlugin_enable_js', true);
-      $this->compressJavascripts = sfConfig::get('opAsseticPlugin_compress_js', true);
+      $this->enableStylesheets = sfConfig::get('app_opAsseticPlugin_enable_css', false);
+      $this->compressStylesheets = sfConfig::get('app_opAsseticPlugin_compress_css', false);
+      $this->enableJavascripts = sfConfig::get('app_opAsseticPlugin_enable_js', false);
+      $this->compressJavascripts = sfConfig::get('app_opAsseticPlugin_compress_js', false);
       
       $this->dispatcher->connect('response.filter_content', array($this, 'listenToResponseFilterContent'));
     }

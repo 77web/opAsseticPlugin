@@ -1,0 +1,11 @@
+dev:
+  opAsseticPlugin:
+    enable_css: false
+    enable_js: false
+
+all:
+  opAsseticPlugin:
+    enable_css: true
+    minify_css: true
+    enable_js: true
+    minify_js: false
