@@ -6,6 +6,7 @@ class Minify
   {
     //remove comments
     $css = preg_replace("/\/\*.+?\*\//is", '', $css);
+    $css = preg_replace("/\/\/.+$/im", '', $css);
     //remove whitespaces
     $css = preg_replace("/^\s+/im", '', $css);
     $css = str_replace(array(": ", " {", ", "), array(":", "{", ","), $css);
