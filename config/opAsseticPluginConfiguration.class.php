@@ -9,13 +9,13 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   
   public function initialize()
   {
-    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='dev')
+    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='prod')
     {
       //pending: read settings from SnsConfig table?
       $this->enableStylesheets = sfConfig::get('opAsseticPlugin_enable_css', true);
       $this->compressStylesheets = sfConfig::get('opAsseticPlugin_compress_css', false);
       $this->enableJavascripts = sfConfig::get('opAsseticPlugin_enable_js', true);
-      $this->compressJavascripts = sfConfig::get('opAsseticPlugin_compress_js', false);
+      $this->compressStylesheets = sfConfig::get('opAsseticPlugin_compress_js', false);
       
       $this->dispatcher->connect('response.filter_content', array($this, 'listenToResponseFilterContent'));
     }
@@ -25,7 +25,7 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   {
     $response = sfContext::getInstance()->getResponse();
     
-    if(0 && $this->enableStylesheets)
+    if($this->enableStylesheets)
     {
       $content = $this->embedStylesheets($response, $content);
     }
@@ -170,36 +170,6 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   protected function compressJavascripts($script)
   {
     //pending: compress js here
-    $params = array();
-    $params['js_code'] = $script;
-    $params['compilation_level'] = 'SIMPLE_OPTIMIZATIONS';
-    $params['output_format'] = 'text';
-    $params['output_info'] = 'compiled_code';
-    
-    $sock = @fsockopen('closure-compiler.appspot.com', 80, $errorno, $errorstr, 30);
-    if($sock)
-    {
-      $param = http_build_query($params);
-      
-      $post = array();
-      $post[] = 'POST /compile HTTP/1.1';
-      $post[] = 'Host: closure-compiler.appspot.com';
-      $post[] = 'Content-Length: '.strlen($param);
-      $post[] = 'Content-Type: application/x-www-form-urlencoded';
-      $post[] = 'Connection: close';
-      $post[] = '';
-      $post[] = $param;
-      
-      fputs($sock, implode("\r\n", $post));
-      if(!feof($sock))
-      {
-        $response .= fread($sock);
-      }
-      fclose($sock);
-      var_dump($response);
-      $script = $response;
-    }
-    
     return $script;
   }
   
