@@ -4,9 +4,11 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
 {
   public function initialize()
   {
-    //disable css for current version
-    sfConfig::set('opAsseticPlugin_enable_css', false);
-    
+    //pending: settings?
+    sfConfig::set('opAsseticPlugin_enable_css', true);
+    sfConfig::set('opAsseticPlugin_compress_css', false);
+    sfConfig::set('opAsseticPlugin_enable_js', true);
+    sfConfig::set('opAsseticPlugin_compress_js', false);
     
     if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='prod')
     {
@@ -19,17 +21,58 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     $response = sfContext::getInstance()->getResponse();
     $webDir = sfConfig::get('sf_web_dir');
     
+    
     if(sfConfig::get('opAsseticPlugin_enable_css', false))
     {
-      $assetsCss = '';
+      $assetsCss = array('screen'=>'', 'print'=>'', 'all'=>'');
       foreach($response->getStylesheets() as $file => $options)
       {
-        $path = $webDir.$file;
-        //pending: css media type
-        $assetsCss .= file_get_contents($path);
+        $mediaType = isset($options['media']) ? $options['media'] : 'screen';
+        
+        //pending: how to handle customized css?
+        if(strpos($file, '://')!==false)
+        {
+          $path = $file;
+        }
+        else
+        {
+          if(strpos($file, '.css')===false)
+          {
+            $file .= '.css';
+          }
+          
+          if(substr($file, 0, 1)!='/')
+          {
+            $file = '/css/'.$file;
+          }
+          $path = $webDir.$file;
+        }
+        $css = file_get_contents($path);
+        
+        if(preg_match_all("/url\([^)]+\)/i", $css, $matches, PREG_SET_ORDER))
+        {
+          $currentPath = dirname($file).'/';
+          $parentPath = dirname(dirname($file)).'/';
+          foreach($matches as $rawPath)
+          {
+            $replacedPath = str_replace(array('../', './'), array($parentPath, $currentPath), $rawPath);
+            $css = str_replace($rawPath, $replacedPath, $css);
+          }
+        }
+        $assetsCss[$mediaType] .= $css;
       }
-      //pending: compress $assetsCss here
-      $styles = '<style type="text/css">'.$assetsCss.'</style>';
+      if(sfConfig::get('opAsseticPlugin_compress_css', false))
+      {
+        //pending: compress css here
+      }
+      $styles = '';
+      foreach($assetsCss as $mediaType => $css)
+      {
+        if(''!==$css)
+        {
+          $styles .= '<style type="text/css" media="'.$mediaType.'">'.$css.'</style>';
+        }
+      }
       $csspattern = "/^<link[^>]+rel=\"stylesheet\"[^>]+>$/im";
       if(preg_match_all($csspattern, $content, $matches, PREG_SET_ORDER))
       {
@@ -46,44 +89,50 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
       $content = str_replace('</head>', $styles.'</head>', $content);
     }
     
-    $assetsJs = '';
-    foreach($response->getJavascripts() as $file => $options)
+    if(sfConfig::get('opAsseticPlugin_enable_js', false))
     {
-      if(strpos($file, '://')!==false)
+      $assetsJs = '';
+      foreach($response->getJavascripts() as $file => $options)
       {
-        $path = $file;
+        if(strpos($file, '://')!==false)
+        {
+          $path = $file;
+        }
+        else
+        {
+          if(strpos($file, '.js')===false)
+          {
+            $file .= '.js';
+          }
+          
+          if(substr($file, 0, 1)!='/')
+          {
+            $file = '/js/'.$file;
+          }
+          $path = $webDir.$file;
+        }
+        $assetsJs .= file_get_contents($path);
       }
-      else
+      if(sfConfig::get('opAsseticPlugin_compress_js', false))
       {
-        if(strpos($file, '.js')===false)
-        {
-          $file .= '.js';
-        }
-        
-        if(substr($file, 0, 1)!='/')
-        {
-          $file = '/js/'.$file;
-        }
-        $path = $webDir.$file;
+        //pending: compress $asstsJs here
       }
-      $assetsJs .= file_get_contents($path);
+      $scripts = '<script type="text/javascript">'.$assetsJs.'</script>';
+      $jspattern = "/^<script[^<]+?<\/script>$/im";
+      if(preg_match_all($jspattern, $content, $matches, PREG_SET_ORDER))
+      {
+        foreach($matches as $match)
+        {
+          $tag = $match[0];
+          $pattern2 = "/<head>.*".str_replace('/', "\/", $tag).".*<\/head>/ims";
+          if(preg_match($pattern2, $content))
+          {
+            $content = str_replace($tag."\n", '', $content);
+          }
+        }
+      }
+      $content = str_replace('</head>', $scripts.'</head>', $content);
     }
-    //pending compress $asstsJs here
-    $scripts = '<script type="text/javascript">'.$assetsJs.'</script>';
-    $jspattern = "/^<script[^<]+?<\/script>$/im";
-    if(preg_match_all($jspattern, $content, $matches, PREG_SET_ORDER))
-    {
-      foreach($matches as $match)
-      {
-        $tag = $match[0];
-        $pattern2 = "/<head>.*".str_replace('/', "\/", $tag).".*<\/head>/ims";
-        if(preg_match($pattern2, $content))
-        {
-          $content = str_replace($tag."\n", '', $content);
-        }
-      }
-    }
-    $content = str_replace('</head>', $scripts.'</head>', $content);
     
     return $content;
   }
