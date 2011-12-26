@@ -11,7 +11,7 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   
   public function initialize()
   {
-    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='dev')
+    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='prod')
     {
       //pending: read settings from SnsConfig table?
       $this->enableStylesheets = sfConfig::get('opAsseticPlugin_enable_css', true);
@@ -102,7 +102,7 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     {
       foreach($assetsCss as $mediaType => $css)
       {
-        $assetsCss[$mediaType] = $this->compressStylesheets($css);
+        $assetsCss[$mediaType] = Minify::minifyStylesheet($css);
       }
     }
     $styles = '';
@@ -149,62 +149,12 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     }
     if($this->compressJavascripts)
     {
-      $assetsJs = $this->compressJavascripts($assetsJs);
+      $assetsJs = Minify::minifyJavascript($assetsJs);
     }
     
     if('' !== $assetsJs)
     {
       $this->javascripts = '<script type="text/javascript">'.$assetsJs.'</script>';
     }
-  }
-  
-  protected function compressJavascripts($script)
-  {
-    //pending: compress js here
-    $params = array();
-    $params['js_code'] = $script;
-    $params['compilation_level'] = 'SIMPLE_OPTIMIZATIONS';
-    $params['output_format'] = 'text';
-    $params['output_info'] = 'compiled_code';
-    
-    $sock = @fsockopen('closure-compiler.appspot.com', 80, $errorno, $errorstr, 30);
-    if($sock)
-    {
-      $param = http_build_query($params);
-      
-      $post = array();
-      $post[] = 'POST /compile HTTP/1.1';
-      $post[] = 'Host: closure-compiler.appspot.com';
-      $post[] = 'Content-Length: '.strlen($param);
-      $post[] = 'Content-Type: application/x-www-form-urlencoded';
-      $post[] = 'Connection: close';
-      $post[] = '';
-      $post[] = $param;
-      
-      fputs($sock, implode("\r\n", $post));
-      $response = '';
-      while(!feof($sock))
-      {
-        $response .= fgets($sock);
-      }
-      fclose($sock);
-      $res = explode("\r\n\r\n", $response);
-      $script = $res[1];
-    }
-    
-    return $script;
-  }
-  
-  protected function compressStylesheets($css)
-  {
-    //remove comments
-    $css = preg_replace("/\/\*.+?\*\//is", '', $css);
-    //remove whitespaces
-    $css = preg_replace("/^\s+/im", '', $css);
-    $css = str_replace(array(": ", " {", ", "), array(":", "{", ","), $css);
-    //remove \r\n
-    $css = str_replace(array("\r", "\n"), '', $css);
-    
-    return $css;
   }
 }
