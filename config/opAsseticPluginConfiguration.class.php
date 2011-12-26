@@ -49,7 +49,23 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     $assetsJs = '';
     foreach($response->getJavascripts() as $file => $options)
     {
-      $path = $webDir.$file;
+      if(strpos($file, '://')!==false)
+      {
+        $path = $file;
+      }
+      else
+      {
+        if(strpos($file, '.js')===false)
+        {
+          $file .= '.js';
+        }
+        
+        if(substr($file, 0, 1)!='/')
+        {
+          $file = '/js/'.$file;
+        }
+        $path = $webDir.$file;
+      }
       $assetsJs .= file_get_contents($path);
     }
     //pending compress $asstsJs here
