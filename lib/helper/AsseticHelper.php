@@ -2,6 +2,10 @@
 
 function assetic_include_stylesheets()
 {
+  if('prod' != sfConfig::get('sf_environment'))
+  {
+    return include_stylesheets();
+  }
   $context = sfContext::getInstance();
   $sf_response = $context->getResponse();
   $sf_user = $context->getUser();
@@ -24,6 +28,10 @@ function assetic_include_stylesheets()
 
 function assetic_include_javascripts()
 {
+  if('prod' != sfConfig::get('sf_environment'))
+  {
+    return include_javascripts();
+  }
   $context = sfContext::getInstance();
   $sf_response = $context->getResponse();
   $sf_user = $context->getUser();
