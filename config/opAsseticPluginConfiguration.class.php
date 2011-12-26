@@ -6,10 +6,12 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
   protected $enableJavascripts = false;
   protected $compressStylesheets = false;
   protected $compressJavascripts = false;
+  protected $stylesheets = '';
+  protected $javascripts = '';
   
   public function initialize()
   {
-    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='prod')
+    if(sfConfig::get('sf_app')=='pc_frontend' && sfConfig::get('sf_environment')=='dev')
     {
       //pending: read settings from SnsConfig table?
       $this->enableStylesheets = sfConfig::get('opAsseticPlugin_enable_css', true);
@@ -17,29 +19,45 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
       $this->enableJavascripts = sfConfig::get('opAsseticPlugin_enable_js', true);
       $this->compressJavascripts = sfConfig::get('opAsseticPlugin_compress_js', true);
       
+      $this->dispatcher->connect('opView.pre_decorate', array($this, 'listenToViewDecorate'));
       $this->dispatcher->connect('response.filter_content', array($this, 'listenToResponseFilterContent'));
     }
   }
-
+  
   public function listenToResponseFilterContent(sfEvent $event, $content)
+  {
+    $head = '';
+    if('' !== $this->javascripts)
+    {
+      $head .= $this->javascripts;
+    }
+    if('' !== $this->stylesheets)
+    {
+      $head .= $this->stylesheets;
+    }
+    if('' !== $head)
+    {
+      $content = str_replace('</head>', $head.'</head>', $content);
+    }
+    return $content;
+  }
+  
+  public function listenToViewDecorate(sfEvent $event)
   {
     $response = sfContext::getInstance()->getResponse();
     
     if($this->enableStylesheets)
     {
-      $content = $this->embedStylesheets($response, $content);
+      $this->embedStylesheets($response);
     }
     
     if($this->enableJavascripts)
     {
-      $content = $this->embedJavascripts($response, $content);
+      $this->embedJavascripts($response);
     }
-    
-    return $content;
   }
   
-  
-  protected function embedStylesheets(sfResponse $response, $content)
+  protected function embedStylesheets(sfResponse $response)
   {
     $webDir = sfConfig::get('sf_web_dir');
     $assetsCss = array('screen'=>'', 'print'=>'', 'all'=>'');
@@ -53,16 +71,17 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
       }
       else
       {
+        $filename = $file;
         if(strpos($file, '.css')===false)
         {
-          $file .= '.css';
+          $filename .= '.css';
         }
         
         if(substr($file, 0, 1)!='/')
         {
-          $file = '/css/'.$file;
+          $filename = '/css/'.$filename;
         }
-        $path = $webDir.$file;
+        $path = $webDir.$filename;
       }
       $css = file_get_contents($path);
       
@@ -77,6 +96,7 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
         }
       }
       $assetsCss[$mediaType] .= $css;
+      $response->removeStylesheet($file);
     }
     if($this->compressStylesheets)
     {
@@ -88,7 +108,7 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     $styles = '';
     foreach($assetsCss as $mediaType => $css)
     {
-      if(''!==$css)
+      if('' !== $css)
       {
         $styles .= '<style type="text/css" media="'.$mediaType.'">'.$css.'</style>';
       }
@@ -96,26 +116,11 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     
     if('' !== $styles)
     {
-      $csspattern = "/^<link[^>]+rel=\"stylesheet\"[^>]+>$/im";
-      if(preg_match_all($csspattern, $content, $matches, PREG_SET_ORDER))
-      {
-        foreach($matches as $match)
-        {
-          $tag = $match[0];
-          $pattern2 = "/<head>.*".str_replace('/', "\/", $tag).".*<\/head>/ims";
-          if(preg_match($pattern2, $content))
-          {
-            $content = str_replace($tag."\n", '', $content);
-          }
-        }
-      }
-      return str_replace('</head>', $styles.'</head>', $content);
+      $this->stylesheets = $styles;
     }
-    
-    return $content;
   }
   
-  protected function embedJavascripts(sfResponse $response, $content)
+  protected function embedJavascripts(sfResponse $response)
   {
     $webDir = sfConfig::get('sf_web_dir');
     $assetsJs = '';
@@ -127,18 +132,20 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
       }
       else
       {
+        $filename = $file;
         if(strpos($file, '.js')===false)
         {
-          $file .= '.js';
+          $filename .= '.js';
         }
         
         if(substr($file, 0, 1)!='/')
         {
-          $file = '/js/'.$file;
+          $filename = '/js/'.$filename;
         }
-        $path = $webDir.$file;
+        $path = $webDir.$filename;
       }
       $assetsJs .= file_get_contents($path);
+      $response->removeJavascript($file);
     }
     if($this->compressJavascripts)
     {
@@ -147,24 +154,8 @@ class opAsseticPluginConfiguration extends sfPluginConfiguration
     
     if('' !== $assetsJs)
     {
-      $scripts = '<script type="text/javascript">'.$assetsJs.'</script>';
-      $jspattern = "/^<script[^<]+?<\/script>$/im";
-      if(preg_match_all($jspattern, $content, $matches, PREG_SET_ORDER))
-      {
-        foreach($matches as $match)
-        {
-          $tag = $match[0];
-          $pattern2 = "/<head>.*".str_replace('/', "\/", $tag).".*<\/head>/ims";
-          if(preg_match($pattern2, $content))
-          {
-            $content = str_replace($tag."\n", '', $content);
-          }
-        }
-      }
-      return str_replace('</head>', $scripts.'</head>', $content);
+      $this->javascripts = '<script type="text/javascript">'.$assetsJs.'</script>';
     }
-    
-    return $content;
   }
   
   protected function compressJavascripts($script)

@@ -126,4 +126,10 @@ class opView extends sfPHPView
 
     return $result;
   }
+  
+  protected function decorate($content)
+  {
+    $this->dispatcher->notify(new sfEvent($this, 'opView.pre_decorate', array('content'=>$content)));
+    return parent::decorate($content);
+  }
 }
