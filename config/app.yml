@@ -6,6 +6,6 @@ dev:
 all:
   opAsseticPlugin:
     enable_css: true
-    minify_css: true
     enable_js: true
+    minify_css: true
     minify_js: false
