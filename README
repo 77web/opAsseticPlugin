@@ -8,3 +8,14 @@ pc_frontendのprod環境限定でcssとjavascriptをheadタグ内にインライ
 
 ■実装予定の機能
 ・管理画面（pc_backend）からjs,cssの展開有無・圧縮有無を設定できる
+
+
+□別の実装候補□
+・opView.class.phpの書き換え型（あまり高速になりません）
+https://github.com/77web/opAsseticPlugin/tree/opView_event
+
+・apps/pc_frontend/templates/_layout.phpの書き換え型その1（却って速度が落ちます）
+https://github.com/77web/opAsseticPlugin/tree/layout_override
+
+・apps/pc_frontend/templates/_layout.phpの書き換え型その2（おすすめ）
+https://github.com/77web/opAsseticPlugin/tree/layout_override_2
