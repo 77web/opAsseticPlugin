@@ -12,6 +12,8 @@ class opAsseticPluginMinifyScriptsTask extends sfBaseTask
   
   protected function execute($arguments = array(), $options = array())
   {
+    $configuration = $this->createConfiguration('pc_frontend', 'cli', true);
+    
     $pluginList = array();
     $pluginsDir = dir(sfConfig::get('sf_plugins_dir'));
     while(($plugin = $pluginsDir->read()) != false)
@@ -64,7 +66,7 @@ class opAsseticPluginMinifyScriptsTask extends sfBaseTask
     }
     foreach($scripts as $scriptPath)
     {
-      file_put_contents($cacheDir.'/'.md5($scriptPath).'.min.js', Minify::minifyJavascript(file_get_contents($scriptPath)));
+      file_put_contents($cacheDir.'/'.md5($scriptPath).'.min.js', opAsseticPluginMinify::minifyJavascript(file_get_contents($scriptPath)));
     }
   }
 }

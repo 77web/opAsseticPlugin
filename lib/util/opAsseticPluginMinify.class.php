@@ -1,6 +1,6 @@
 <?php
 
-class Minify
+class opAsseticPluginMinify
 {
   public static function minifyStylesheet($css)
   {

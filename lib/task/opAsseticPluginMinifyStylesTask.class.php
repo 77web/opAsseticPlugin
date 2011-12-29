@@ -12,6 +12,8 @@ class opAsseticPluginMinifyStylesTask extends sfBaseTask
   
   protected function execute($arguments = array(), $options = array())
   {
+    $configuration = $this->createConfiguration('pc_frontend', 'cli', true);
+    
     $pluginList = array();
     $pluginsDir = dir(sfConfig::get('sf_plugins_dir'));
     while(($plugin = $pluginsDir->read()) != false)
@@ -64,7 +66,7 @@ class opAsseticPluginMinifyStylesTask extends sfBaseTask
     }
     foreach($styles as $stylePath)
     {
-      file_put_contents($cacheDir.'/'.md5($stylePath).'.min.css', Minify::minifyStylesheet(file_get_contents($stylePath)));
+      file_put_contents($cacheDir.'/'.md5($stylePath).'.min.css', opAsseticPluginMinify::minifyStylesheet(file_get_contents($stylePath)));
     }
   }
 }
