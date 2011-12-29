@@ -28,9 +28,9 @@ use_minify_cache_js  jsのminifyキャッシュを使用するかどうか
 ./symfony opAsseticPlugin:minify-scripts
 ./symfony opAsseticPlugin:minify-styles
 
-3.(PNE)/apps/pc_frontend/templates/_layout.phpの
+4.(PNE)/apps/pc_frontend/templates/_layout.phpの
 <?php include_javascripts(); ?>を<?php opAsseticPlugin_include_javascripts(); ?>に書き換え
 <?php include_stylesheets(); ?>を<?php opAsseticPlugin_include_stylesheets(); ?>に書き換え
 
-4.実際にページを表示して動作を確認してください。
+5.実際にページを表示して動作を確認してください。
 
