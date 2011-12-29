@@ -28,7 +28,7 @@ class opAsseticPluginMinifyStylesTask extends sfBaseTask
     $dirs = array();
     foreach($pluginList as $pluginName)
     {
-      $pluginWebDir = sfConfig::get('sf_plugins_dir').'/'.$pluginName.'/web';
+      $pluginWebDir = sfConfig::get('sf_web_dir').'/'.$pluginName;;
       if(is_dir($pluginWebDir))
       {
         $dirs[] = $pluginWebDir;
@@ -40,6 +40,8 @@ class opAsseticPluginMinifyStylesTask extends sfBaseTask
         }
       }
     }
+    $dirs[] = sfConfig::get('sf_web_dir');
+    $dirs[] = sfConfig::get('sf_web_dir').'/css';
     
     $styles = array();
     foreach($dirs as $dirPath)
@@ -66,7 +68,7 @@ class opAsseticPluginMinifyStylesTask extends sfBaseTask
     }
     foreach($styles as $stylePath)
     {
-      file_put_contents($cacheDir.'/'.md5($stylePath).'.min.css', opAsseticPluginMinify::minifyStylesheet(file_get_contents($stylePath)));
+      file_put_contents($cacheDir.'/'.str_replace('/', '_', $stylePath).'.min.css', opAsseticPluginMinify::minifyStylesheet(file_get_contents($stylePath)));
     }
   }
 }

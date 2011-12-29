@@ -28,7 +28,7 @@ class opAsseticPluginMinifyScriptsTask extends sfBaseTask
     $dirs = array();
     foreach($pluginList as $pluginName)
     {
-      $pluginWebDir = sfConfig::get('sf_plugins_dir').'/'.$pluginName.'/web';
+      $pluginWebDir = sfConfig::get('sf_web_dir').'/'.$pluginName;
       if(is_dir($pluginWebDir))
       {
         $dirs[] = $pluginWebDir;
@@ -40,6 +40,8 @@ class opAsseticPluginMinifyScriptsTask extends sfBaseTask
         }
       }
     }
+    $dirs[] = sfConfig::get('sf_web_dir');
+    $dirs[] = sfConfig::get('sf_web_dir').'/js';
     
     $scripts = array();
     foreach($dirs as $dirPath)
@@ -66,7 +68,7 @@ class opAsseticPluginMinifyScriptsTask extends sfBaseTask
     }
     foreach($scripts as $scriptPath)
     {
-      file_put_contents($cacheDir.'/'.md5($scriptPath).'.min.js', opAsseticPluginMinify::minifyJavascript(file_get_contents($scriptPath)));
+      file_put_contents($cacheDir.'/'.str_replace('/', '_', $scriptPath).'.min.js', opAsseticPluginMinify::minifyJavascript(file_get_contents($scriptPath)));
     }
   }
 }

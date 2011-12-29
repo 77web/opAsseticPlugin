@@ -8,4 +8,6 @@ all:
     enable_css: true
     enable_js: true
     minify_css: true
-    minify_js: false
+    minify_js: true
+    use_minify_cache_css: true
+    use_minify_cache_js: true

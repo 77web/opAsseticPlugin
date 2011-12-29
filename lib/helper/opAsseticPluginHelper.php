@@ -7,6 +7,9 @@ function opAsseticPlugin_include_javascripts()
     include_javascripts();
     return;
   }
+  $isUseCache = sfConfig::get('app_opAsseticPlugin_use_minify_cache_js', false) && sfConfig::get('app_opAsseticPlugin_minify_js', false);
+  $cacheDir = sfConfig::get('sf_cache_dir').'/opAsseticPlugin';
+  
   $response = sfContext::getInstance()->getResponse();
   $webDir = sfConfig::get('sf_web_dir');
   $assetsJs = '';
@@ -29,9 +32,17 @@ function opAsseticPlugin_include_javascripts()
       }
       $path = $webDir.$file;
     }
-    $assetsJs .= file_get_contents($path);
+    $cachePath = $cacheDir.'/'.str_replace('/', '_', $path).'.min.js';
+    if($isUseCache && file_exists($cachePath))
+    {
+      $assetsJs .= file_get_contents($cachePath);
+    }
+    else
+    {
+      $assetsJs .= file_get_contents($path);
+    }
   }
-  if(sfConfig::get('app_opAsseticPlugin_minify_js', false))
+  if(sfConfig::get('app_opAsseticPlugin_minify_js', false) && !$isUseCache)
   {
     $assetsJs = opAsseticPluginMinify::minifyJavascript($assetsJs);
   }
@@ -49,6 +60,9 @@ function opAsseticPlugin_include_stylesheets()
     include_stylesheets();
     return;
   }
+
+  $isUseCache = sfConfig::get('app_opAsseticPlugin_use_minify_cache_css', false) && sfConfig::get('app_opAsseticPlugin_minify_css', false);
+  $cacheDir = sfConfig::get('sf_cache_dir').'/opAsseticPlugin';
 
   $response = sfContext::getInstance()->getResponse();
   $webDir = sfConfig::get('sf_web_dir');
@@ -72,9 +86,19 @@ function opAsseticPlugin_include_stylesheets()
       {
         $file = '/css/'.$file;
       }
+      
       $path = $webDir.$file;
     }
-    $css = file_get_contents($path);
+    
+    $cachePath = $cacheDir.'/'.str_replace('/', '_', $path).'.min.css';
+    if($isUseCache && file_exists($cachePath))
+    {
+      $css = file_get_contents($cachePath);
+    }
+    else
+    {
+      $css = file_get_contents($path);
+    }
     
     if(preg_match_all("/url\([^)]+\)/i", $css, $matches, PREG_SET_ORDER))
     {
@@ -88,7 +112,7 @@ function opAsseticPlugin_include_stylesheets()
     }
     $assetsCss[$mediaType] .= $css;
   }
-  if(sfConfig::get('app_opAsseticPlugin_minify_css', false))
+  if(sfConfig::get('app_opAsseticPlugin_minify_css', false) && !$isUseCache)
   {
     foreach($assetsCss as $mediaType => $css)
     {
