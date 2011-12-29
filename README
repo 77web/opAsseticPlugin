@@ -13,17 +13,24 @@ pc_frontendのprod環境限定でcssとjavascriptをheadタグ内にインライ
 
 □□layout_override_2ブランチの使用方法□□
 1.プラグインインストール後、config/app.ymlで設定を調整してください。
-enable_css  cssをheadタグ内に展開するかどうか
-enable_js   javascriptをheadタグ内に展開するかどうか
-minify_css  cssをheadタグ内に展開する際、minifyするかどうか
-minify_js   javascriptをheadタグ内に展開する際、minifyするかどうか
+enable_css           cssをheadタグ内に展開するかどうか
+enable_js            javascriptをheadタグ内に展開するかどうか
+minify_css           cssをheadタグ内に展開する際、minifyするかどうか
+minify_js            javascriptをheadタグ内に展開する際、minifyするかどうか
+use_minify_cache_css cssのminifyキャッシュを使用するかどうか
+use_minify_cache_js  jsのminifyキャッシュを使用するかどうか
 
-※デフォルト設定は、[cssはminifyありでheadタグ内展開あり・jsはminifyなしでheadタグ内展開あり]になっています。dev環境（pc_frontend_dev.phpへのアクセス）では[cssもjsもheadタグ内展開なし]です。
+※デフォルト設定は、[cssもjsもminifyあり（キャッシュ利用）でheadタグ内展開あり]になっています。dev環境（pc_frontend_dev.phpへのアクセス）では[cssもjsもheadタグ内展開なし]です。
 
 2.一度./symfony cc実行。
+
+3.キャッシュを利用する時のみ（use_minify_cacheをjsかcssのどちらかonにした時のみ）、キャッシュ生成タスクを実行してください。以後、symfony ccを伴う動作をした時には再実行が必要です。
+./symfony opAsseticPlugin:minify-scripts
+./symfony opAsseticPlugin:minify-styles
 
 3.(PNE)/apps/pc_frontend/templates/_layout.phpの
 <?php include_javascripts(); ?>を<?php opAsseticPlugin_include_javascripts(); ?>に書き換え
 <?php include_stylesheets(); ?>を<?php opAsseticPlugin_include_stylesheets(); ?>に書き換え
 
 4.実際にページを表示して動作を確認してください。
+
