@@ -33,7 +33,7 @@ function opAsseticPlugin_include_javascripts()
   }
   if(sfConfig::get('app_opAsseticPlugin_minify_js', false))
   {
-    $assetsJs = Minify::minifyJavascript($assetsJs);
+    $assetsJs = opAsseticPluginMinify::minifyJavascript($assetsJs);
   }
   
   if('' !== $assetsJs)
@@ -92,7 +92,7 @@ function opAsseticPlugin_include_stylesheets()
   {
     foreach($assetsCss as $mediaType => $css)
     {
-      $assetsCss[$mediaType] = Minify::minifyStylesheet($css);
+      $assetsCss[$mediaType] = opAsseticPluginMinify::minifyStylesheet($css);
     }
   }
   $styles = '';
